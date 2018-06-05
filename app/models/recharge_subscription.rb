@@ -1,0 +1,2 @@
+class RechargeSubscription < ApplicationRecord
+end
