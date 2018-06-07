@@ -1,4 +1,4 @@
 Rails.application.routes.draw do
-  resource :subscriptions, only: [:create]
   root 'subscriptions#index'
+  resource :subscriptions, only: [:create, :index]
 end
