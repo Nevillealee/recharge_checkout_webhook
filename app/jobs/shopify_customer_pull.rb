@@ -5,6 +5,6 @@ class ShopifyCustomerPull
   # perform method has to take same arguements
   # as enqueue method calling this worker
   def self.perform
-    CustomerAPI.save_all_shopify_customers
+    GetDataAPI.save_all_shopify_customers
   end
 end

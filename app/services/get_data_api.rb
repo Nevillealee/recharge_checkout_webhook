@@ -1,4 +1,4 @@
-module CustomerAPI
+module GetDataAPI
   SHOPIFY_CUSTOMERS = []
   RECHARGE_CUSTOMERS = []
   RECHARGE_SUBS = []
