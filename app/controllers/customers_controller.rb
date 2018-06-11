@@ -1,22 +1,34 @@
 class CustomersController < ApplicationController
   def create
+    @shopify_id = valid_params["customer"]["shopify_customer_id"]
+    @cust_id = valid_params["customer"]["id"]
+    @topic = request.headers["X-Recharge-Topic"]
+
     case request.headers["X-Recharge-Topic"]
       when 'customer/created'
-        my_id = recharge_cust_params["customer"]["shopify_customer_id"]
-        Resque.enqueue(NewShopifyCustomerTag, my_id)
+        Resque.enqueue(NewShopifyCustomerTag, @shopify_id)
+        puts "created endpoint"
         puts request.headers["X-Recharge-Topic"]
       when 'customer/updated'
+        Resque.enqueue(NewShopifyCustomerTag, @shopify_id)
+        puts "updated endpoint"
+        puts request.headers["X-Recharge-Topic"]
       when 'customer/activated'
+        Resque.enqueue(NewShopifyCustomerTag, @shopify_id)
+        puts "activated endpoint"
+        puts request.headers["X-Recharge-Topic"]
       when 'customer/deactivated'
+        puts "deactivated endpoint"
+        Resque.enqueue(TagRemovalBySub,  @cust_id, 'customer')
     else
-      render :json => my_sub.to_json ,:status => 200
+      render :json => valid_params["customer"].to_json ,:status => 400
       puts request.headers["X-Recharge-Topic"]
     end
   end
 
   private
 
-  def recharge_cust_params
+  def valid_params
      params.permit(
        customer:
        [:id,
@@ -25,8 +37,7 @@ class CustomersController < ApplicationController
          :shopify_customer_id,
          :first_name,
          :last_name,
-         :status
-        ]
+         :status]
       )
   end
 

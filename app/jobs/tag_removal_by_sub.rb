@@ -1,8 +1,8 @@
 class TagRemovalBySub
-  @queue :shopify
+  @queue = :shopify
 
-  def self.perform(sub_id)
-    UnTagger.new(sub_id, 'subscription').remove
+  def self.perform(obj_id, id_type)
+    UnTagger.new(obj_id, id_type).remove
   end
 
 end

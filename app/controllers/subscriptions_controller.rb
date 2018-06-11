@@ -12,21 +12,25 @@ class SubscriptionsController < ApplicationController
     case @topic
     when 'subscription/created'
       if @status == 'ACTIVE'
+        puts "subscription/created endpoint"
         Resque.enqueue(ShopifyCustomerTag, @sub_id)
         puts "X-Recharge-Topic: #{@topic}"
       end
     when 'subscription/updated'
       if @status == 'ACTIVE'
+        puts "subscription/updated endpoint"
         Resque.enqueue(ShopifyCustomerTag, @sub_id)
         puts "X-Recharge-Topic: #{@topic}"
       end
     when 'subscription/activated'
       Resque.enqueue(ShopifyCustomerTag, @sub_id)
+      puts "subscription/activated endpoint"
       puts "X-Recharge-Topic: #{@topic}"
     when 'subscription/cancelled'
-      Resque.enqueue(TagRemovalBySub, @sub_id)
+      puts "subscription/cancelled endpoint"
+      Resque.enqueue(TagRemovalBySub, @sub_id, 'subscription')
     else
-      render :json => my_sub.to_json ,:status => 200
+      render :json => valid_params["subscription"].to_json ,:status => 400
       puts request.headers["X-Recharge-Topic"]
     end
   end
