@@ -2,7 +2,7 @@ module GetDataAPI
   SHOPIFY_CUSTOMERS = []
   RECHARGE_CUSTOMERS = []
   RECHARGE_SUBS = []
-  my_token = ENV['RECHARGE_ACTIVE_TOKEN']
+  my_token = ENV['RECHARGE_STAGING_TOKEN']
   @my_header = {
     "X-Recharge-Access-Token" => my_token
   }
@@ -114,13 +114,13 @@ module GetDataAPI
   private
   def self.shopify_api_throttle
     ShopifyAPI::Base.site =
-      "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin"
+      "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
       return if ShopifyAPI.credit_left > 5
       put "api limit reached sleeping 10.."
       sleep 10
   end
   def self.init_recharge_customers
-    ReCharge.api_key ="#{ENV['RECHARGE_ACTIVE_TOKEN']}"
+    ReCharge.api_key ="#{ENV['RECHARGE_STAGING_TOKEN']}"
     customer_count = Recharge::Customer.count
     nb_pages = (customer_count / 250.0).ceil
 
@@ -135,13 +135,13 @@ module GetDataAPI
   def self.init_all_shopify_customers
     customer_array = []
     ShopifyAPI::Base.site =
-      "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin"
+      "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
     shopify_customer_count = ShopifyAPI::Customer.count
     nb_pages = (shopify_customer_count / 250.0).ceil
 
     1.upto(nb_pages) do |page|
       ellie_active_url =
-        "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin/customers.json?limit=250&page=#{page}"
+        "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin/customers.json?limit=250&page=#{page}"
       @parsed_response = HTTParty.get(ellie_active_url)
       customer_array.push(@parsed_response['customers'])
       p "shopify customers set #{page}/#{nb_pages} loaded"

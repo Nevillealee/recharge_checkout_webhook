@@ -7,7 +7,7 @@ class CustomerUpdatewSub
   end
 
   def tag_customer
-    shop_url = "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin"
+    shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
     # find shopify customer associated with subscription_id passed
     # in from recharge webhook to subscriptions#create endpoint

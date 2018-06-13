@@ -4,7 +4,7 @@ class CustomerUpdatewID
   end
 
   def tag_customer
-    shop_url = "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin"
+    shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
     api_cust_obj = ShopifyAPI::Customer.find(@my_id)
     api_tags = api_cust_obj.tags.split(",")
