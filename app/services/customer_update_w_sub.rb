@@ -13,7 +13,6 @@ class CustomerUpdatewSub
     # find shopify customer associated with subscription_id passed
     # in from recharge webhook to subscriptions#create endpoint
     begin
-	retries ||= 0
     my_customer = ShopifyCustomer.find_by_sql(
       "select sc.* from recharge_subscriptions rs
       INNER JOIN recharge_customers rc
@@ -24,6 +23,7 @@ class CustomerUpdatewSub
     )
     Resque.logger.info "cant find subscription id: #{@sub_id} linked to a shopify customer object" if my_customer == nil || my_customer == ""
     my_tags = my_customer[0]["tags"].split(",")
+    
     if my_tags.include?('recurring_subscription')
       Resque.logger.info my_tags.inspect
       Resque.logger.info "customer doesnt need to be tagged"
@@ -44,7 +44,7 @@ class CustomerUpdatewSub
 	    Resque.logger.info "Adding subscription to db"
       Resque.logger.info "subscription not in database #{e.message}"
       add_subscription(@sub)
-  	retry if (retries += 1) < 2
+  	retry
    end
   end
 

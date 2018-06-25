@@ -8,10 +8,9 @@ class CustomerUpdatewID
     ShopifyAPI::Base.site = shop_url
     api_cust_obj = ShopifyAPI::Customer.find(@my_id)
     api_tags = api_cust_obj.tags.delete(' ').split(",")
-    Resque.logger.info "#{api_tags.inspect}"
+    Resque.logger.info "unaltered tags from shopify: #{api_tags.inspect}"
 
     if api_tags.include?("recurring_subscription")
-      Resque.logger.info "customer doesnt need to be tagged"
       Resque.logger.info "customer doesnt need to be tagged"
     else
       Resque.logger.info "customer tags before: #{api_cust_obj.tags}"

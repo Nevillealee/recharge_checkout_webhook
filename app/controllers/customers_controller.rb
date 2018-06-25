@@ -1,4 +1,6 @@
 class CustomersController < ApplicationController
+  Resque.logger = Logger.new("#{Rails.root}/log/resque.log")
+  Resque.logger.level = Logger::INFO
 
   def index
   end
@@ -11,22 +13,22 @@ class CustomersController < ApplicationController
     case request.headers["X-Recharge-Topic"]
       when 'customer/created'
         Resque.enqueue(NewShopifyCustomerTag, @shopify_id)
-        puts "created endpoint"
+        Resque.logger.info "customer created endpoint"
         puts request.headers["X-Recharge-Topic"]
         render :status => 200
       when 'customer/updated'
         Resque.enqueue(NewShopifyCustomerTag, @shopify_id)
-        puts "updated endpoint"
+        Resque.logger.info "customer updated endpoint"
         puts request.headers["X-Recharge-Topic"]
         render :status => 200
       when 'customer/activated'
+        Resque.logger.info "customer/activated endpoint"
         Resque.enqueue(NewShopifyCustomerTag, @shopify_id)
-        puts "activated endpoint"
         puts request.headers["X-Recharge-Topic"]
         render :status => 200
       when 'customer/deactivated'
-        puts "deactivated endpoint"
-        Resque.enqueue(TagRemovalBySub,  @cust_id, 'customer')
+        Resque.logger.info "customer deactivated endpoint"
+        Resque.enqueue(TagRemovalBySub,  @cust_id, 'customer', params['customer'])
         render :status => 200
     else
       render :json => valid_params["customer"].to_json ,:status => 400
