@@ -21,7 +21,6 @@ db:structure:load
 db:version
 dev:cache
 initializers
-list_recharge_webhooks
 log:clear
 middleware
 notes
@@ -42,4 +41,6 @@ test:system
 time:zones[country_or_offset]
 tmp:clear
 tmp:create
+webhook:create[topic,callback]
+webhook:list
 yarn:install
