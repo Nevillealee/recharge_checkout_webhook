@@ -40,7 +40,7 @@ module GetDataAPI
       updated_at: shopify_cust['updated_at']
       )
       rescue
-        puts "error with #{shopify_cust.first_name} #{shopify_cust.last_name}"
+        puts "error with #{shopify_cust['first_name']} #{shopify_cust['last_name']}"
         next
       end
       p "saved #{shopify_cust['id']}"
@@ -146,7 +146,7 @@ module GetDataAPI
       customer_array.push(@parsed_response['customers'])
       p "shopify customers set #{page}/#{nb_pages} loaded"
       # TODO(Neville Lee) uncomment sleep statement for production use
-      # sleep 3
+      sleep 3
     end
     p 'all shopify customers initialized'
     customer_array.flatten!

@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  resource :customers, only: [:create]
   root 'subscriptions#index'
-  resource :subscriptions, only: [:create, :index]
+  resources :customers, only: [:create, :index]
+  resources :subscriptions, only: [:create, :index]
 end

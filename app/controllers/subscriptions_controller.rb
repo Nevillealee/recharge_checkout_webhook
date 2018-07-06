@@ -1,53 +1,59 @@
 class SubscriptionsController < ApplicationController
-  # before_action :load_subscription
+  Resque.logger = Logger.new("#{Rails.root}/log/resque.log")
+  Resque.logger.level = Logger::INFO
 
   def index
   end
 
   def create
-    @sub_id = valid_params["subscription"]["id"]
-    @status = valid_params["subscription"]["status"]
+    @sub_id = params["subscription"]["id"]
+    @sub = params["subscription"]
+    @status = params["subscription"]["status"]
     @topic = request.headers["X-Recharge-Topic"]
 
     case @topic
     when 'subscription/created'
       if @status == 'ACTIVE'
-        puts "subscription/created endpoint"
-        Resque.enqueue(ShopifyCustomerTag, @sub_id)
+        Resque.logger.info "subscription/created endpoint"
+        Resque.enqueue(ShopifyCustomerTag, @sub_id, @sub)
         puts "X-Recharge-Topic: #{@topic}"
+        render :status => 200
       end
     when 'subscription/updated'
       if @status == 'ACTIVE'
-        puts "subscription/updated endpoint"
-        Resque.enqueue(ShopifyCustomerTag, @sub_id)
+        Resque.logger.info "subscription/updated endpoint"
+        Resque.enqueue(ShopifyCustomerTag, @sub_id, @sub)
         puts "X-Recharge-Topic: #{@topic}"
+        render :status => 200
       end
     when 'subscription/activated'
-      Resque.enqueue(ShopifyCustomerTag, @sub_id)
-      puts "subscription/activated endpoint"
+      Resque.enqueue(ShopifyCustomerTag, @sub_id, @sub)
+      Resque.logger.info "subscription/activated endpoint"
       puts "X-Recharge-Topic: #{@topic}"
+      render :status => 200
     when 'subscription/cancelled'
-      puts "subscription/cancelled endpoint"
-      Resque.enqueue(TagRemovalBySub, @sub_id, 'subscription')
+      Resque.logger.info "subscription/cancelled endpoint"
+      Resque.enqueue(TagRemovalBySub, @sub_id, 'subscription', @sub)
+      render :status => 200
     else
-      render :json => valid_params["subscription"].to_json ,:status => 400
+      render :json => params["subscription"].to_json ,:status => 400
       puts request.headers["X-Recharge-Topic"]
     end
   end
 
-  private
-
-  def valid_params
-     params.permit(
-       subscription:
-       [:id,
-         :customer_id,
-         :status,
-         :properties,
-         :shopify_product_id,
-         :product_title
-        ]
-      )
-  end
+  # private
+  #
+  # def params
+  #    params.permit(
+  #      subscription:
+  #      [:id,
+  #        :customer_id,
+  #        :status,
+  #        :properties,
+  #        :shopify_product_id,
+  #        :product_title
+  #       ]
+  #     )
+  # end
 
 end

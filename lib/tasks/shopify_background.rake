@@ -2,7 +2,7 @@
 require "resque/tasks"
 # load up rails environment so we have access to
 # all models inside of our workers
-task "resque:setup" => :environment
+ task "resque:setup" => :environment
 
 desc 'pulls all shopify customers'
 task shopify_customer_pull: :environment do
