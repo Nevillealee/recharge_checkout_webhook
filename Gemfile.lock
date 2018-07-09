@@ -99,7 +99,7 @@ GEM
     puma (3.11.4)
     rack (2.0.5)
     rack-cors (1.0.2)
-    rack-protection (2.0.2)
+    rack-protection (2.0.3)
       rack
     rack-test (1.0.0)
       rack (>= 1.0, < 3)
@@ -147,10 +147,10 @@ GEM
     shopify_api (4.11.0)
       activeresource (>= 3.0.0)
       rack
-    sinatra (2.0.2)
+    sinatra (2.0.3)
       mustermann (~> 1.0)
       rack (~> 2.0)
-      rack-protection (= 2.0.2)
+      rack-protection (= 2.0.3)
       tilt (~> 2.0)
     spring (2.0.2)
       activesupport (>= 4.2)
@@ -198,7 +198,7 @@ DEPENDENCIES
   tzinfo-data
 
 RUBY VERSION
-   ruby 2.5.1p57
+   ruby 2.5.0p0
 
 BUNDLED WITH
    1.16.2

@@ -1,5 +1,5 @@
 # loads custom tasks provided in resque gem
-require "resque/tasks"
+ require "resque/tasks"
 # load up rails environment so we have access to
 # all models inside of our workers
  task "resque:setup" => :environment
