@@ -35,20 +35,21 @@ class UnTagger
 
       if subs_array.size <= 0
         my_shopify_cust = ShopifyAPI::Customer.find(shopify_id)
-        my_tags = my_shopify_cust.tags.delete(' ').split(",")
+        my_tags = my_shopify_cust.tags.split(",")
         Resque.logger.info "tags before: #{my_shopify_cust.tags}"
-        my_tags.delete_if {|x| x == 'recurring_subscription'}
-        my_shopify_cust.tags = my_tags
+        my_tags.delete_if {|x| x.includes?('recurring_subscription')}
+        my_shopify_cust.tags = my_tags.join(", ")
         Resque.logger.info "tags after: #{my_shopify_cust.tags}"
         my_shopify_cust.save
         Resque.logger.info "tag removed"
       else
         Resque.logger.info subs_array.inspect
-        Resque.logger.info "tags will not removed, customer has #{subs_array.size} other ACTIVE subscriptions"
+        Resque.logger.info "tags will not be removed, customer has #{subs_array.size} other ACTIVE subscriptions"
       end
 
     elsif @id_type == 'customer'
       begin
+        retries ||= 0
         Resque.logger.info '(customer) block reached in Untagger worker'
         # id_type of customer refers to recharge customer object id
         shopify_cust = RechargeCustomer.find("#{@my_id}")
@@ -62,10 +63,10 @@ class UnTagger
       # only remove tags if customer deactivated AND doesnt have other active subs
         if subs_array.size <= 0
           my_shopify_cust = ShopifyAPI::Customer.find(shopify_cust.shopify_customer_id)
-          my_tags = my_shopify_cust.tags.delete(' ').split(",")
+          my_tags = my_shopify_cust.tags.split(",")
           Resque.logger.info "tags before: #{my_shopify_cust.tags}"
-          my_tags.delete_if {|x| x == 'recurring_subscription'}
-          my_shopify_cust.tags = my_tags
+          my_tags.delete_if {|x| x.includes?('recurring_subscription')}
+          my_shopify_cust.tags = my_tags.join(", ")
           Resque.logger.info "tags after: #{my_shopify_cust.tags}"
           my_shopify_cust.save
         end
@@ -73,7 +74,8 @@ class UnTagger
         Resque.logger.info "customer not in database #{e.message}"
         Resque.logger.info "Adding new customer to db"
         add_customer(@cust)
-        retry
+        retries += 1
+        retry if retries < 3
       end
     else
       Resque.logger.info "type: '#{@id_type}' parameter not recognized.."

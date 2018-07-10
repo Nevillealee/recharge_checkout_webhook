@@ -1,5 +1,5 @@
 class ShopifyCustomerTag
-  @queue = :new
+  @queue = :shopify
 
   def self.perform(sub_id, obj)
     Resque.logger = Logger.new("#{Rails.root}/log/resque.log")

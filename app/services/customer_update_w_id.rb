@@ -7,7 +7,7 @@ class CustomerUpdatewID
     shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
     api_cust_obj = ShopifyAPI::Customer.find(@my_id)
-    api_tags = api_cust_obj.tags.delete(' ').split(",")
+    api_tags = api_cust_obj.tags.split(",")
     Resque.logger.info "unaltered tags from shopify: #{api_tags.inspect}"
 
     if api_tags.include?("recurring_subscription")

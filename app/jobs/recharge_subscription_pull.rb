@@ -1,5 +1,5 @@
 class RechargeSubscriptionPull
-  @queue = :new
+  @queue = :recharge
   def self.perform
     Resque.logger = Logger.new("#{Rails.root}/log/resque.log")
     Resque.logger.level = Logger::DEBUG
