@@ -38,7 +38,8 @@ class UnTagger
         my_tags = my_shopify_cust.tags.split(",")
         Resque.logger.info "tags before: #{my_shopify_cust.tags}"
         my_tags.delete_if {|x| x.include?('recurring_subscription')}
-        my_shopify_cust.tags = my_tags.join(",")
+        # shopify wont accept tag string values without space AND comma delimited tokens!
+        my_shopify_cust.tags = my_tags.join(", ")
         Resque.logger.info "tags after: #{my_shopify_cust.tags}"
         my_shopify_cust.save
         Resque.logger.info "tag removed"
@@ -66,7 +67,8 @@ class UnTagger
           my_tags = my_shopify_cust.tags.split(",")
           Resque.logger.info "tags before: #{my_shopify_cust.tags}"
           my_tags.delete_if {|x| x.include?('recurring_subscription')}
-          my_shopify_cust.tags = my_tags.join(",")
+          # shopify wont accept tag string values without space AND comma delimited tokens!
+          my_shopify_cust.tags = my_tags.join(", ")
           Resque.logger.info "tags after: #{my_shopify_cust.tags}"
           my_shopify_cust.save
         end

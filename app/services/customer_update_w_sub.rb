@@ -19,7 +19,6 @@ class CustomerUpdatewSub
     begin
     retries ||= 0
     my_customer = get_shopify_customer(@sub)
-    Resque.logger.info "my_customer returned: #{my_customer.inspect}"
     #  ShopifyCustomer.find_by_sql(
     #   "select sc.* from recharge_subscriptions rs
     #   INNER JOIN recharge_customers rc
@@ -29,19 +28,17 @@ class CustomerUpdatewSub
     #   where rs.id = '#{@sub_id}';"
     # )
 
-    Resque.logger.info "problem is with #{my_tags.inspect}"
-    my_tags = my_customer["tags"].split(",")
-
-    if my_tags.include?('recurring_subscription')
+    my_tags = my_customer.tags.split(",")
+    if my_tags.include?('recurring_subscription') || my_tags.include?(' recurring_subscription')
       Resque.logger.info my_tags.inspect
       Resque.logger.info "customer doesnt need to be tagged"
     else
       Resque.logger.info "making api call in order to tag customer.."
-      shopify_cust_obj = ShopifyAPI::Customer.find(my_customer["id"])
-      Resque.logger.info "here what shopifys api returned from ID: #{my_customer["id"]}"
-      # puts shopify_cust_obj.inspect
+      shopify_cust_obj = ShopifyAPI::Customer.find(my_customer.id)
+      Resque.logger.info "here what shopifys api returned from ID: #{shopify_cust_obj.id}"
       my_tags << "recurring_subscription"
-      new_tags = my_tags.join(",")
+      # shopify wont accept tag string values without space AND comma delimited tokens!
+      new_tags = my_tags.join(", ")
       Resque.logger.info "old shopify customer object tags: #{shopify_cust_obj.tags}"
       shopify_cust_obj.tags = new_tags
       Resque.logger.info "new shopify customer object tags: #{shopify_cust_obj.tags}"
@@ -93,7 +90,6 @@ class CustomerUpdatewSub
     shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
     shopify_cust = ShopifyAPI::Customer.find(recharge_cust["shopify_customer_id"])
-    Resque.logger.info "Found shopify customer #{shopify_cust.inspect}"
     return shopify_cust
   end
 
