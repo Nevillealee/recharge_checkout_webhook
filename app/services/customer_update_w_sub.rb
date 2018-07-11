@@ -5,6 +5,10 @@ class CustomerUpdatewSub
   def initialize(sub_id, sub)
     @sub_id = sub_id
     @sub = sub
+    my_token = ENV['RECHARGE_STAGING_TOKEN']
+    @my_header = {
+      "X-Recharge-Access-Token" => my_token
+    }
   end
 
   def tag_customer
@@ -14,27 +18,30 @@ class CustomerUpdatewSub
     # in from recharge webhook to subscriptions#create endpoint
     begin
     retries ||= 0
-    my_customer = ShopifyCustomer.find_by_sql(
-      "select sc.* from recharge_subscriptions rs
-      INNER JOIN recharge_customers rc
-      ON CAST(rs.customer_id AS BIGINT) = rc.id
-      INNER JOIN shopify_customers sc
-      ON CAST(rc.shopify_customer_id AS BIGINT) = sc.id
-      where rs.id = '#{@sub_id}';"
-    )
-    Resque.logger.info "cant find subscription id: #{@sub_id} linked to a shopify customer object" if my_customer == nil || my_customer == ""
-    my_tags = my_customer[0]["tags"].split(",")
+    my_customer = get_shopify_customer(@sub)
+    Resque.logger.info "my_customer returned: #{my_customer.inspect}"
+    #  ShopifyCustomer.find_by_sql(
+    #   "select sc.* from recharge_subscriptions rs
+    #   INNER JOIN recharge_customers rc
+    #   ON CAST(rs.customer_id AS BIGINT) = rc.id
+    #   INNER JOIN shopify_customers sc
+    #   ON CAST(rc.shopify_customer_id AS BIGINT) = sc.id
+    #   where rs.id = '#{@sub_id}';"
+    # )
+
+    Resque.logger.info "problem is with #{my_tags.inspect}"
+    my_tags = my_customer["tags"].split(",")
 
     if my_tags.include?('recurring_subscription')
       Resque.logger.info my_tags.inspect
       Resque.logger.info "customer doesnt need to be tagged"
     else
       Resque.logger.info "making api call in order to tag customer.."
-      shopify_cust_obj = ShopifyAPI::Customer.find(my_customer[0]["id"])
-      Resque.logger.info "here what shopifys api returned from ID: #{my_customer[0]["id"]}"
+      shopify_cust_obj = ShopifyAPI::Customer.find(my_customer["id"])
+      Resque.logger.info "here what shopifys api returned from ID: #{my_customer["id"]}"
       # puts shopify_cust_obj.inspect
       my_tags << "recurring_subscription"
-      new_tags = my_tags.join(", ")
+      new_tags = my_tags.join(",")
       Resque.logger.info "old shopify customer object tags: #{shopify_cust_obj.tags}"
       shopify_cust_obj.tags = new_tags
       Resque.logger.info "new shopify customer object tags: #{shopify_cust_obj.tags}"
@@ -45,8 +52,8 @@ class CustomerUpdatewSub
       retries += 1
       Resque.logger.info "ERROR: #{e.message}"
       Resque.logger.info "Attempt ##{retries}/3"
-      add_subscription(@sub)
-  	retry if retries < 3
+      # add_subscription(@sub)
+  	retry if retries < 2
    end
   end
 
@@ -72,6 +79,22 @@ class CustomerUpdatewSub
        expire_after_specfic_number_of_charges: my_sub["expire_after_specfic_number_of_charges"]
     )
     Resque.logger.debug "Subscription saved to db"
+  end
+
+  def get_shopify_customer(sub)
+    Resque.logger.info "calling apis to get shopify customer from sub data"
+    my_url = "https://api.rechargeapps.com/customers/#{sub["customer_id"]}"
+    response = HTTParty.get(my_url, :headers => @my_header)
+    my_response = JSON.parse(response.body)
+    #recharge_cust is now a hash with string keys
+    recharge_cust = my_response['customer']
+    Resque.logger.info "Found recharge customer #{recharge_cust['id']}"
+
+    shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
+    ShopifyAPI::Base.site = shop_url
+    shopify_cust = ShopifyAPI::Customer.find(recharge_cust["shopify_customer_id"])
+    Resque.logger.info "Found shopify customer #{shopify_cust.inspect}"
+    return shopify_cust
   end
 
 end
