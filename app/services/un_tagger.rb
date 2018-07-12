@@ -36,11 +36,11 @@ class UnTagger
       if subs_array.size <= 0
         my_shopify_cust = ShopifyAPI::Customer.find(shopify_id)
         my_tags = my_shopify_cust.tags.split(",")
-        Resque.logger.info "tags before: #{my_shopify_cust.tags}"
+        Resque.logger.info "tags before: #{my_shopify_cust.tags.inspect}"
         my_tags.delete_if {|x| x.include?('recurring_subscription')}
         # shopify wont accept tag string values without space AND comma delimited tokens!
         my_shopify_cust.tags = my_tags.join(", ")
-        Resque.logger.info "tags after: #{my_shopify_cust.tags}"
+        Resque.logger.info "tags after: #{my_shopify_cust.tags.inspect}"
         my_shopify_cust.save
         Resque.logger.info "tag removed"
       else
@@ -63,21 +63,29 @@ class UnTagger
         Resque.logger.info "number of subscriptions: #{subs_array.size}"
       # only remove tags if customer deactivated AND doesnt have other active subs
         if subs_array.size <= 0
+          changes_made = false
           my_shopify_cust = ShopifyAPI::Customer.find(shopify_cust.shopify_customer_id)
           my_tags = my_shopify_cust.tags.split(",")
-          Resque.logger.info "tags before: #{my_shopify_cust.tags}"
-          my_tags.delete_if {|x| x.include?('recurring_subscription')}
+          Resque.logger.info "tags before: #{my_shopify_cust.tags.inspect}"
+          my_tags.each do |x|
+            if x.include?('recurring_subscription')
+              my_tags.delete(x)
+              changes_made = true
+            end
+          end
           # shopify wont accept tag string values without space AND comma delimited tokens!
-          my_shopify_cust.tags = my_tags.join(", ")
-          Resque.logger.info "tags after: #{my_shopify_cust.tags}"
-          my_shopify_cust.save
+          if changes_made
+            my_shopify_cust.tags = my_tags.join(", ")
+            Resque.logger.info "changes made, tags after: #{my_shopify_cust.tags.inspect}"
+            my_shopify_cust.save
+          end
         end
       rescue => e
         Resque.logger.info "error: #{e.message}"
         Resque.logger.info "Adding new customer to db"
         add_customer(@cust)
         retries += 1
-        retry if retries < 3
+        retry if retries < 2
       end
     else
       Resque.logger.info "type: '#{@id_type}' parameter not recognized.."
