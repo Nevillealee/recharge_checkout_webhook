@@ -19,17 +19,10 @@ class CustomerUpdatewSub
     begin
     retries ||= 0
     my_customer = get_shopify_customer(@sub)
-    #  ShopifyCustomer.find_by_sql(
-    #   "select sc.* from recharge_subscriptions rs
-    #   INNER JOIN recharge_customers rc
-    #   ON CAST(rs.customer_id AS BIGINT) = rc.id
-    #   INNER JOIN shopify_customers sc
-    #   ON CAST(rc.shopify_customer_id AS BIGINT) = sc.id
-    #   where rs.id = '#{@sub_id}';"
-    # )
 
     my_tags = my_customer.tags.split(",")
-    if my_tags.include?('recurring_subscription') || my_tags.include?(' recurring_subscription')
+    my_tags.map! {|x| x.strip}
+    if my_tags.include?('recurring_subscription')
       Resque.logger.info my_tags.inspect
       Resque.logger.info "customer doesnt need to be tagged"
     else
@@ -38,11 +31,10 @@ class CustomerUpdatewSub
       Resque.logger.info "here what shopifys api returned from ID: #{shopify_cust_obj.id}"
       my_tags << "recurring_subscription"
       # shopify wont accept tag string values without space AND comma delimited tokens!
-      new_tags = my_tags.join(", ")
       Resque.logger.info "old shopify customer object tags: #{shopify_cust_obj.tags}"
-      shopify_cust_obj.tags = new_tags
-      Resque.logger.info "new shopify customer object tags: #{shopify_cust_obj.tags}"
+      shopify_cust_obj.tags = my_tags.join(",")
       shopify_cust_obj.save
+      Resque.logger.info "new shopify customer object tags: #{shopify_cust_obj.tags}"
     end
 
     rescue => e

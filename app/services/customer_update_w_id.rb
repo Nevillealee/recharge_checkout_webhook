@@ -8,17 +8,18 @@ class CustomerUpdatewID
     ShopifyAPI::Base.site = shop_url
     api_cust_obj = ShopifyAPI::Customer.find(@my_id)
     api_tags = api_cust_obj.tags.split(",")
+    api_tags.map! {|x| x.strip}
     Resque.logger.info "unaltered tags from shopify: #{api_tags.inspect}"
 
     if api_tags.include?("recurring_subscription")
       Resque.logger.info "customer doesnt need to be tagged"
     else
-      Resque.logger.info "customer tags before: #{api_cust_obj.tags}"
+      Resque.logger.info "customer tags before: #{api_cust_obj.tags.inspect}"
       api_tags << 'recurring_subscription'
       # shopify wont accept tag string values without space AND comma delimited tokens!
-      api_cust_obj.tags = api_tags.join(", ")
+      api_cust_obj.tags = api_tags.join(",")
+      Resque.logger.info "customer tags after save: #{api_cust_obj.tags.inspect}"
       api_cust_obj.save
-      Resque.logger.info "customer tags after save: #{api_cust_obj.tags}"
     end
 
     begin
