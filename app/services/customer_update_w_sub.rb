@@ -28,6 +28,7 @@ class CustomerUpdatewSub
       Resque.logger.info "customer doesnt need to be tagged"
     else
       Resque.logger.info "making api call in order to tag customer.."
+      sleep 5
       shopify_cust_obj = ShopifyAPI::Customer.find(my_customer.id)
       Resque.logger.info "here what shopifys api returned from ID: #{shopify_cust_obj.id}"
       my_tags << "recurring_subscription"
@@ -82,6 +83,7 @@ class CustomerUpdatewSub
 
     shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
+    sleep 5
     shopify_cust = ShopifyAPI::Customer.find(recharge_cust["shopify_customer_id"])
     return shopify_cust
   end

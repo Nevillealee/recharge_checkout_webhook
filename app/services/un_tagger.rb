@@ -37,6 +37,7 @@ class UnTagger
 
 
       if subs_array.size <= 0
+        sleep 8
         my_shopify_cust = ShopifyAPI::Customer.find(shopify_id)
         my_tags = my_shopify_cust.tags.split(",")
         my_tags.map! {|x| x.strip}
@@ -74,7 +75,7 @@ class UnTagger
       # only remove tags if customer deactivated AND doesnt have other active subs
         if subs_array.size <= 0
           changes_made = false
-          sleep 5
+          sleep 8
           my_shopify_cust = ShopifyAPI::Customer.find(recharge_cust['shopify_customer_id'])
           my_tags = my_shopify_cust.tags.split(",")
           Resque.logger.info "tags before: #{my_shopify_cust.tags.inspect}"
