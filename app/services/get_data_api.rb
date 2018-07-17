@@ -1,3 +1,7 @@
+# Internal: Various methods useful for pulling
+# the latest data from both shopify and recharge apis.
+# All methods are module methods and should be called
+# on the GetDataAPI module.
 module GetDataAPI
   SHOPIFY_CUSTOMERS = []
   RECHARGE_CUSTOMERS = []

@@ -1,3 +1,6 @@
+# Internal: add 'recurring_subscription' tag to shopify customer object
+# matched by shopify_customer_id sent from recharge through its customer
+# object if shopify customer object does not contain tag already.
 class CustomerUpdatewID
   def initialize(shopify_id)
     @my_id = shopify_id
@@ -6,20 +9,21 @@ class CustomerUpdatewID
   def tag_customer
     shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
+    sleep 5
     api_cust_obj = ShopifyAPI::Customer.find(@my_id)
     api_tags = api_cust_obj.tags.split(",")
-    api_tags.map! {|x| x.strip}
     Resque.logger.info "unaltered tags from shopify: #{api_tags.inspect}"
+    api_tags.map! {|x| x.strip}
 
     if api_tags.include?("recurring_subscription")
       Resque.logger.info "customer doesnt need to be tagged"
     else
       Resque.logger.info "customer tags before: #{api_cust_obj.tags.inspect}"
-      api_tags << 'recurring_subscription'
+      api_tags << "recurring_subscription"
       # shopify wont accept tag string values without space AND comma delimited tokens!
       api_cust_obj.tags = api_tags.join(",")
-      Resque.logger.info "customer tags after save: #{api_cust_obj.tags.inspect}"
       api_cust_obj.save
+      Resque.logger.info "customer tags after save: #{api_cust_obj.tags.inspect}"
     end
 
     begin

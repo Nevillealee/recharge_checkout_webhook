@@ -1,6 +1,7 @@
-# Takes subscription_id to match shopify customer
-# before updating shopify with the customers new tags
-
+# Internal: Add 'recurring_subscription' tag to shopify customer object
+# (found via recharge sub.customer_id -> recharge cust.shopify_customer_id ->
+# shopify cust.id) if shopify customer object does not contain
+# 'recurring_subscription' tag already.
 class CustomerUpdatewSub
   def initialize(sub_id, sub)
     @sub_id = sub_id

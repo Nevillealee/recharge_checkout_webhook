@@ -1,3 +1,6 @@
+# Internal: Using subscription or customer json recieved from recharge,
+# remove 'recurring_subscription' tag from matching shopify customer object
+# if customer no longer has an active subscription.
 class UnTagger
   def initialize(id, type, obj)
     @my_id = id
@@ -36,10 +39,10 @@ class UnTagger
       if subs_array.size <= 0
         my_shopify_cust = ShopifyAPI::Customer.find(shopify_id)
         my_tags = my_shopify_cust.tags.split(",")
-        my_tags.map! {|x| x.strip!}
+        my_tags.map! {|x| x.strip}
         Resque.logger.info "tags before: #{my_shopify_cust.tags.inspect}"
         my_tags.delete_if {|x| x.include?('recurring_subscription')}
-        my_tags.delete_if {|x| x.include?('Active Subscriber')}
+        # my_tags.delete_if {|x| x.include?('Active Subscriber')}
         # shopify wont accept tag string values without space AND comma delimited tokens!
         my_shopify_cust.tags = my_tags.join(",")
         my_shopify_cust.save
@@ -58,10 +61,10 @@ class UnTagger
         recharge_url = "https://api.rechargeapps.com/customers/#{@my_id}"
         recharge_response = HTTParty.get(recharge_url, :headers => @my_header)
         parsed_recharge_response = JSON.parse(recharge_response.body)
-        shopify_cust = parsed_recharge_response['customer']
+        recharge_cust = parsed_recharge_response['customer']
 
 
-        Resque.logger.info "shopify customer id: #{shopify_cust['shopify_customer_id']}"
+        Resque.logger.info "shopify customer id: #{recharge_cust['shopify_customer_id']}"
         my_url = "https://api.rechargeapps.com/subscriptions?customer_id=#{@my_id}&status=ACTIVE"
         response = HTTParty.get(my_url, :headers => @my_header)
         my_response = JSON.parse(response.body)
@@ -71,17 +74,13 @@ class UnTagger
       # only remove tags if customer deactivated AND doesnt have other active subs
         if subs_array.size <= 0
           changes_made = false
-          my_shopify_cust = ShopifyAPI::Customer.find(shopify_cust['shopify_customer_id'])
+          sleep 5
+          my_shopify_cust = ShopifyAPI::Customer.find(recharge_cust['shopify_customer_id'])
           my_tags = my_shopify_cust.tags.split(",")
           Resque.logger.info "tags before: #{my_shopify_cust.tags.inspect}"
-          my_tags.each do |x|
-            x.strip!
-            # TODO(Neville Lee) rewrite using regex /(\s*)recurring_subscription/
-            if x.include?('Active Subscriber')
-              my_tags.delete(x)
-              changes_made = true
-            end
+          my_tags.map! {|x| x.strip}
 
+          my_tags.each do |x|
             if x.include?('recurring_subscription')
               my_tags.delete(x)
               changes_made = true
