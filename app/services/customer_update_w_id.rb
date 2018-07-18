@@ -20,7 +20,6 @@ class CustomerUpdatewID
     else
       Resque.logger.info "customer tags before: #{api_cust_obj.tags.inspect}"
       api_tags << "recurring_subscription"
-      # shopify wont accept tag string values without space AND comma delimited tokens!
       api_cust_obj.tags = api_tags.join(",")
       api_cust_obj.save
       Resque.logger.info "customer tags after save: #{api_cust_obj.tags.inspect}"
@@ -62,6 +61,5 @@ class CustomerUpdatewID
     )
     Resque.logger.info "customer saved to db"
   end
-
 
 end

@@ -43,7 +43,6 @@ class CustomerUpdatewSub
       retries += 1
       Resque.logger.info "ERROR: #{e.message}"
       Resque.logger.info "Attempt ##{retries}/3"
-      # add_subscription(@sub)
   	retry if retries < 2
    end
   end

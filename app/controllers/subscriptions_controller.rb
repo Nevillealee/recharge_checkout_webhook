@@ -42,19 +42,5 @@ class SubscriptionsController < ApplicationController
     end
   end
 
-  # private
-  #
-  # def params
-  #    params.permit(
-  #      subscription:
-  #      [:id,
-  #        :customer_id,
-  #        :status,
-  #        :properties,
-  #        :shopify_product_id,
-  #        :product_title
-  #       ]
-  #     )
-  # end
 
 end
