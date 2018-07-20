@@ -55,7 +55,7 @@ class UnTagger
 
     elsif @id_type == 'customer'
       begin
-        tries ||= 0
+        # tries ||= 0
         Resque.logger.info '(customer) block reached in Untagger worker'
         # id_type of customer refers to recharge customer object id
         recharge_url = "https://api.rechargeapps.com/customers/#{@my_id}"
@@ -95,7 +95,7 @@ class UnTagger
       rescue => e
         Resque.logger.info "error: #{e.message}"
         Resque.logger.info "Adding new customer to db"
-        add_customer(@cust)
+        # add_customer(@cust)
       end
     else
       Resque.logger.info "type: '#{@id_type}' parameter not recognized.."

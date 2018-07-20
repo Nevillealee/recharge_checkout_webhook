@@ -24,15 +24,15 @@ class CustomerUpdatewID
       api_cust_obj.save
       Resque.logger.info "customer tags after save: #{api_cust_obj.tags.inspect}"
     end
-
-    begin
-      if !(ShopifyCustomer.where(id: @my_id).exists?)
-        Resque.logger.info "customer does not exist in database yet.."
-        add_customer(api_cust_obj)
-      end
-    rescue => e
-      Resque.logger.info "#{e.message}"
-    end
+    # 
+    # begin
+    #   if !(ShopifyCustomer.where(id: @my_id).exists?)
+    #     Resque.logger.info "customer does not exist in database yet.."
+    #     add_customer(api_cust_obj)
+    #   end
+    # rescue => e
+    #   Resque.logger.info "#{e.message}"
+    # end
 
   end
 

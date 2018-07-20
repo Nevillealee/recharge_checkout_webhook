@@ -149,7 +149,6 @@ module GetDataAPI
       @parsed_response = HTTParty.get(ellie_active_url)
       customer_array.push(@parsed_response['customers'])
       p "shopify customers set #{page}/#{nb_pages} loaded"
-      # TODO(Neville Lee) uncomment sleep statement for production use
       sleep 3
     end
     p 'all shopify customers initialized'
@@ -169,7 +168,7 @@ module GetDataAPI
         RECHARGE_SUBS.push(s)
       end
       p "recharge subscription set #{page}/#{nb_pages} loaded"
-      # sleep 1
+      sleep 3
     end
     p 'recharge subscriptions initialized'
   end
