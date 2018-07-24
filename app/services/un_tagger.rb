@@ -6,18 +6,16 @@ class UnTagger
     @my_id = id
     @id_type = type
     @cust = obj
-    my_token = ENV['RECHARGE_STAGING_TOKEN']
+    my_token = ENV['RECHARGE_ACTIVE_TOKEN']
     @my_header = {
       "X-Recharge-Access-Token" => my_token
     }
   end
 
   def remove
-    shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
+    shop_url = "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
     if @id_type == 'subscription'
-      # TODO(Neville Lee) change shop url env keys to ellie active
-
       # link subscription_id to its recharge customer.
       # returns a hash array
       recharge_customer = RechargeCustomer.find_by_sql(
@@ -37,13 +35,12 @@ class UnTagger
 
 
       if subs_array.size <= 0
-        sleep 8
+        sleep 5
         my_shopify_cust = ShopifyAPI::Customer.find(shopify_id)
         my_tags = my_shopify_cust.tags.split(",")
         my_tags.map! {|x| x.strip}
         Resque.logger.info "tags before: #{my_shopify_cust.tags.inspect}"
         my_tags.delete_if {|x| x.include?('recurring_subscription')}
-        # shopify wont accept tag string values without space AND comma delimited tokens!
         my_shopify_cust.tags = my_tags.join(",")
         my_shopify_cust.save
         Resque.logger.info "tags after: #{my_shopify_cust.tags.inspect}"
@@ -55,7 +52,6 @@ class UnTagger
 
     elsif @id_type == 'customer'
       begin
-        # tries ||= 0
         Resque.logger.info '(customer) block reached in Untagger worker'
         # id_type of customer refers to recharge customer object id
         recharge_url = "https://api.rechargeapps.com/customers/#{@my_id}"
@@ -74,7 +70,7 @@ class UnTagger
       # only remove tags if customer deactivated AND doesnt have other active subs
         if subs_array.size <= 0
           changes_made = false
-          sleep 8
+          sleep 5
           my_shopify_cust = ShopifyAPI::Customer.find(recharge_cust['shopify_customer_id'])
           my_tags = my_shopify_cust.tags.split(",")
           Resque.logger.info "tags before: #{my_shopify_cust.tags.inspect}"
@@ -86,6 +82,7 @@ class UnTagger
               changes_made = true
             end
           end
+
           if changes_made
             my_shopify_cust.tags = my_tags.join(",")
             Resque.logger.info "changes made, tags after: #{my_shopify_cust.tags.inspect}"
@@ -94,35 +91,10 @@ class UnTagger
         end
       rescue => e
         Resque.logger.info "error: #{e.message}"
-        Resque.logger.info "Adding new customer to db"
-        # add_customer(@cust)
       end
     else
       Resque.logger.info "type: '#{@id_type}' parameter not recognized.."
     end
-  end
-
-  def add_customer(my_cust)
-    RechargeCustomer.create(
-      id: @my_id,
-      customer_hash: my_cust['customer_hash'],
-      shopify_customer_id: my_cust['shopify_customer_id'],
-      email: my_cust['email'],
-      created_at: my_cust['created_at'],
-      updated_at: my_cust['updated_at'],
-      first_name: my_cust['first_name'],
-      last_name: my_cust['last_name'],
-      billing_address1: my_cust['billing_address1'],
-      billing_address2: my_cust['billing_address2'],
-      billing_zip: my_cust['billing_zip'],
-      billing_city: my_cust['billing_city'],
-      billing_company: my_cust['billing_company'],
-      billing_province: my_cust['billing_province'],
-      billing_country: my_cust['billing_country'],
-      billing_phone: my_cust['billing_phone'],
-      processor_type: my_cust['processor_type'],
-      status: my_cust['status']
-    )
   end
 
 end

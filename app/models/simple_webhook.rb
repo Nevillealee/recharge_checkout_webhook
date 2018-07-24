@@ -2,7 +2,8 @@ module SimpleWebhook
   class RechargeInfo
     def initialize
       @my_header = {
-          "X-Recharge-Access-Token" => ENV['RECHARGE_STAGING_TOKEN']
+          "X-Recharge-Access-Token" => ENV['RECHARGE_ACTIVE_TOKEN'],
+          "content-type" => 'application/json'
       }
     end
 
@@ -13,7 +14,7 @@ module SimpleWebhook
     end
 
     def create_webhook(hook, callback)
-      
+
       # POST /webhooks
       temp_hash = { "webhook" => {"address" => callback, "topic" => hook} }
       body = temp_hash.to_json
@@ -22,8 +23,7 @@ module SimpleWebhook
         my_url,
         :headers => @my_header,
         :body => body,
-        :timeout => 80,
-        :headers => {"content-type" => 'application/json'}
+        :timeout => 80
       )
       puts new_webhook.inspect
     end
