@@ -1,6 +1,5 @@
 class TagRemovalBySub
-  @queue = :shopify
-
+  @queue = :tag_removal
   def self.perform(obj_id, id_type, obj)
     Resque.logger = Logger.new("#{Rails.root}/log/resque.log")
     Resque.logger.level = Logger::DEBUG

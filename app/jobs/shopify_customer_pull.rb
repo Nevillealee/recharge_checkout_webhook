@@ -1,5 +1,5 @@
 class ShopifyCustomerPull
-  @queue = :shopify
+  @queue = :data
   def self.perform
     Resque.logger = Logger.new("#{Rails.root}/log/resque.log")
     Resque.logger.level = Logger::DEBUG

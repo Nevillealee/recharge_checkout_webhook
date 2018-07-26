@@ -27,6 +27,7 @@ class CustomerUpdatewSub
       Resque.logger.info "customer doesnt need to be tagged"
     else
       Resque.logger.info "making api call in order to tag customer.."
+      sleep 5
       shopify_cust_obj = ShopifyAPI::Customer.find(my_customer.id)
       Resque.logger.info "here what shopifys api returned from ID: #{shopify_cust_obj.id}"
       my_tags << "recurring_subscription"
