@@ -29,6 +29,7 @@ class CustomersController < ApplicationController
       when 'customer/deactivated'
         Resque.logger.info "customer deactivated endpoint"
         Resque.enqueue(TagRemovalBySub,  @cust_id, 'customer', params['customer'])
+        puts request.headers["X-Recharge-Topic"]
         render :status => 200
     else
       render :json => valid_params["customer"].to_json ,:status => 400
