@@ -4,7 +4,7 @@
 class ProspectRemover
   def initialize(id)
     @recharge_cust_id = id
-    my_token = ENV['RECHARGE_STAGING_TOKEN']
+    my_token = ENV['RECHARGE_ACTIVE_TOKEN']
     @my_header = {
       "X-Recharge-Access-Token" => my_token
     }
@@ -12,7 +12,7 @@ class ProspectRemover
 
   def start
     begin
-    shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
+    shop_url = "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
     my_url = "https://api.rechargeapps.com/customers/#{@recharge_cust_id}"
     response = HTTParty.get(my_url, :headers => @my_header)
