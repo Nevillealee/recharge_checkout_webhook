@@ -47,5 +47,4 @@ class ProspectRemover
     end
   end
 
-
 end
