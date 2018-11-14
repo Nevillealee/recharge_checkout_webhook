@@ -1,3 +1,5 @@
+# Public: Background job within prospect_tag_removal queue
+# default class method invokes ProspectRemover service
 class ProspectTag
   @queue = :prospect_tag_removal
   def self.perform(cust_id)
