@@ -6,14 +6,14 @@ class CustomerUpdatewSub
   def initialize(sub_id, sub)
     @sub_id = sub_id
     @sub = sub
-    my_token = ENV['RECHARGE_ACTIVE_TOKEN']
+    my_token = ENV['RECHARGE_STAGING_TOKEN']
     @my_header = {
       "X-Recharge-Access-Token" => my_token
     }
   end
 
   def tag_customer
-    shop_url = "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin"
+    shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
     # find shopify customer associated with subscription_id passed
     # in from recharge webhook to subscriptions#create endpoint
@@ -54,7 +54,7 @@ class CustomerUpdatewSub
     recharge_cust = my_response['customer']
     Resque.logger.info "Found recharge customer #{recharge_cust['id']}"
 
-    shop_url = "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin"
+    shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
     sleep 5
     shopify_cust = ShopifyAPI::Customer.find(recharge_cust["shopify_customer_id"])
