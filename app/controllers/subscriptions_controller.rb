@@ -1,6 +1,5 @@
 class SubscriptionsController < ApplicationController
-  Resque.logger = Logger.new("#{Rails.root}/log/resque.log")
-  Resque.logger.level = Logger::INFO
+  Resque.logger = Logger.new("#{Rails.root}/log/subscriptions_resque.log")
 
   def index
   end

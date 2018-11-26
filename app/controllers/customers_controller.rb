@@ -1,6 +1,5 @@
 class CustomersController < ApplicationController
-  Resque.logger = Logger.new("#{Rails.root}/log/resque.log")
-  Resque.logger.level = Logger::INFO
+  Resque.logger = Logger.new("#{Rails.root}/log/customers_resque.log")
 
   def index
   end

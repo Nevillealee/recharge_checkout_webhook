@@ -1,56 +1,41 @@
-Internal: Various methods useful for pulling
-the latest data from both shopify and recharge apis.
-All methods are module methods and should be called
-on the GetDataAPI module.
+# Internal: Various methods useful for pulling
+# the latest data from both shopify and recharge apis.
+# All methods are module methods and should be called
+# on the GetDataAPI module.
+
 module GetDataAPI
   SHOPIFY_CUSTOMERS = []
   RECHARGE_CUSTOMERS = []
   RECHARGE_SUBS = []
   my_token = ENV['RECHARGE_STAGING_TOKEN']
+  @sleep_recharge = ENV['RECHARGE_SLEEP_TIME']
+
   @my_header = {
     "X-Recharge-Access-Token" => my_token
   }
+  @my_change_charge_header = {
+    "X-Recharge-Access-Token" => my_token,
+    "Accept" => "application/json",
+    "Content-Type" =>"application/json"
+  }
+  @uri = URI.parse(ENV['DATABASE_URL'])
+  @conn = PG.connect(@uri.hostname, @uri.port, nil, nil, @uri.path[1..-1], @uri.user, @uri.password)
+  @shopify_base_site = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
 
-  def self.save_all_shopify_customers
-    all_customers = init_all_shopify_customers
-    size = all_customers.size
-    progressbar = ProgressBar.create(
-    title: 'Progess',
-    starting_at: 0,
-    total: size,
-    format: '%t: %p%%  |%B|')
-
-    all_customers.each do |shopify_cust|
-    begin
-      ShopifyCustomer.create(
-      id: shopify_cust['id'],
-      accepts_marketing: shopify_cust['accepts_marketing'],
-      addresses: shopify_cust['addresses'],
-      default_address: shopify_cust['default_address'],
-      email: shopify_cust['email'],
-      first_name: shopify_cust['first_name'],
-      last_name: shopify_cust['last_name'],
-      last_order_id: shopify_cust['last_order_id'],
-      multipass_identifier: shopify_cust['multipass_identifier'],
-      note: shopify_cust['note'],
-      orders_count: shopify_cust['orders_count'],
-      phone: shopify_cust['phone'],
-      state: shopify_cust['state'],
-      tags: shopify_cust['tags'],
-      tax_exempt: shopify_cust['tax_exempt'],
-      total_spent: shopify_cust['total_spent'],
-      verified_email: shopify_cust['verified_email'],
-      created_at: shopify_cust['created_at'],
-      updated_at: shopify_cust['updated_at']
-      )
-      rescue
-        puts "error with #{shopify_cust['first_name']} #{shopify_cust['last_name']}"
-        next
-      end
-      p "saved #{shopify_cust['id']}"
-      progressbar.increment
+  def self.handle_shopify_customers(option)
+    params = {"option_value" => option, "connection" => @uri, "shopify_base" => @shopify_base_site, "sleep_shopify" => @sleep_shopify}
+    if option == "full_pull"
+      Resque.logger.info "Doing full pull of shopify customers"
+      #delete tables and do full pull
+      Resque.logger.debug "handle_shopify_customers uri: #{@uri.inspect}"
+      Resque.enqueue(PullShopifyCustomer, params)
+    elsif option == "yesterday"
+      Resque.logger.info "Doing partial pull of shopify customers since yesterday"
+      #params = {"option_value" => option, "connection" => @uri}
+      Resque.enqueue(PullShopifyCustomer, params)
+    else
+      Resque.logger.error "sorry, cannot understand option #{option}, doing nothing."
     end
-    puts 'shopify customers saved to db..'
   end
 
   def self.save_recharge_customers
@@ -123,6 +108,7 @@ module GetDataAPI
       put "api limit reached sleeping 10.."
       sleep 10
   end
+
   def self.init_recharge_customers
     ReCharge.api_key ="#{ENV['RECHARGE_STAGING_TOKEN']}"
     customer_count = Recharge::Customer.count
@@ -136,25 +122,7 @@ module GetDataAPI
     p 'recharge customers initialized'
     RECHARGE_CUSTOMERS.flatten!
   end
-  def self.init_all_shopify_customers
-    customer_array = []
-    ShopifyAPI::Base.site =
-      "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
-    shopify_customer_count = ShopifyAPI::Customer.count
-    nb_pages = (shopify_customer_count / 250.0).ceil
 
-    1.upto(nb_pages) do |page|
-      ellie_active_url =
-        "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin/customers.json?limit=250&page=#{page}"
-      @parsed_response = HTTParty.get(ellie_active_url)
-      customer_array.push(@parsed_response['customers'])
-      p "shopify customers set #{page}/#{nb_pages} loaded"
-      sleep 3
-    end
-    p 'all shopify customers initialized'
-    customer_array.flatten!
-    return customer_array
-  end
   def self.init_recharge_subs
     response = HTTParty.get("https://api.rechargeapps.com/subscriptions/count", :headers => @my_header)
     my_response = JSON.parse(response.body)
@@ -172,4 +140,5 @@ module GetDataAPI
     end
     p 'recharge subscriptions initialized'
   end
+
 end
