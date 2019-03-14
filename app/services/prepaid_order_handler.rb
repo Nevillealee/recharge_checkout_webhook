@@ -1,3 +1,4 @@
+# Facilitates Order tag updating
 class PrepaidOrderHandler
   def initialize(order_id)
     #order_id has a class of Integer
@@ -9,6 +10,6 @@ class PrepaidOrderHandler
   end
 
   def start
-    puts "Service job reached with order_id = #{@order_id}, class: #{@order_id.class}"
+    return @order_id
   end
 end

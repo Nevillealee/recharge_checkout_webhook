@@ -6,37 +6,31 @@ class OrdersController < ApplicationController
   end
 
   def create
-    @cust_id = valid_params["order"]["customer_id"] if valid_params["order"]
-    @topic = request.headers["X-Recharge-Topic"] if request.headers["X-Recharge-Topic"]
+    @cust_id = valid_params["customer_id"]
+    @topic = request.headers["X-Recharge-Topic"]
+
     case request.headers["X-Recharge-Topic"]
     when 'order/created'
-      if valid_params["order"]["is_prepaid"] == 1
-        @order_id = valid_params["order"]["id"]
+      if (valid_params["is_prepaid"] == "1") && (valid_params["status"] == 'QUEUED')
         Resque.logger.info "order/created QUEUED order endpoint"
         puts "order/created QUEUED order endpoint"
-        Resque.enqueue(QueuedOrderLabel, @order_id)
+        Resque.enqueue(QueuedOrderLabel, valid_params["id"])
+        render :status => 200
+      else
+        Resque.logger.info "order/created prospect tag endpoint"
+        Resque.enqueue(ProspectTag, @cust_id)
+        puts @topic
+        render :status => 200
       end
-      Resque.logger.info "order/created prospect tag endpoint"
-      Resque.enqueue(ProspectTag, @cust_id)
-      puts @topic
-      render :status => 200
     else
-      render :json => valid_params["order"].to_json ,:status => 400
+      render :json => params["order"].to_json ,:status => 400
       puts request.headers["X-Recharge-Topic"]
     end
- end
+  end
+
   private
 
   def valid_params
-     params.permit(
-       order:
-       [:id,
-         :customer_id,
-         :email,
-         :first_name,
-         :last_name,
-         :is_prepaid,
-       ]
-      )
+     params.require(:order).permit(:id, :customer_id, :email,:is_prepaid, :line_items, :status)
   end
 end
