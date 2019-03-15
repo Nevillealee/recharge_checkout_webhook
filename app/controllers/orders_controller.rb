@@ -14,7 +14,7 @@ class OrdersController < ApplicationController
       if (valid_params["is_prepaid"] == "1") && (valid_params["status"] == 'QUEUED')
         Resque.logger.info "order/created QUEUED order endpoint"
         puts "order/created QUEUED order endpoint"
-        Resque.enqueue(QueuedOrderLabel, valid_params["id"])
+        Resque.enqueue(QueuedOrderLabel, valid_params["id"], valid_params["line_items"])
         render :status => 200
       else
         Resque.logger.info "order/created prospect tag endpoint"

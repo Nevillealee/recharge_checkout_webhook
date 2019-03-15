@@ -94,3 +94,28 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 =end
 end
+
+MOCK_ITEM = [{
+  "sku" => "99999999",
+  "price" => "0.00",
+  "title" => "3 Months 3 items",
+  "quantity" => 1,
+  "properties" => [
+    {"name" => "charge_interval_frequency", "value" => "3"},
+    {"name" => "charge_interval_unit_type", "value" => "Months"},
+    {"name" => "leggings", "value" => "S"},
+    {"name" => "main-product", "value" => "true"},
+    {"name" => "product_collection", "value" => "Mauve Muse - 3 Items"},
+    {"name" => "product_id", "value" => 1635509436467},
+    {"name" => "referrer", "value" => ""},
+    {"name" => "shipping_interval_frequency", "value" => "1"},
+    {"name" => "shipping_interval_unit_type", "value" => "Months"},
+    {"name" => "sports-bra", "value" => "S"},
+    {"name" => "tops", "value" => "S"}
+    ],
+  "product_title" => "3 Months 3 items",
+  "variant_title" => "",
+  "subscription_id" => 84461930,
+  "shopify_product_id" => "1635509436467",
+  "shopify_variant_id" => "7221282577220",
+  }]
