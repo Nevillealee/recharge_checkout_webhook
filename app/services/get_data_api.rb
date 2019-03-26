@@ -3,9 +3,9 @@
 # All methods are module methods and should be called
 # on the GetDataAPI module.
 module GetDataAPI
-  SHOPIFY_CUSTOMERS = []
-  RECHARGE_CUSTOMERS = []
-  RECHARGE_SUBS = []
+  SHOPIFY_CUSTOMERS ||= []
+  RECHARGE_CUSTOMERS ||= []
+  RECHARGE_SUBS ||= []
   my_token = ENV['RECHARGE_ACTIVE_TOKEN']
   @my_header = {
     "X-Recharge-Access-Token" => my_token

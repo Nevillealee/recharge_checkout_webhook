@@ -38,7 +38,7 @@ class UnTagger
         sleep 5
         my_shopify_cust = ShopifyAPI::Customer.find(shopify_id)
         my_tags = my_shopify_cust.tags.split(",")
-        my_tags.map! {|x| x.strip}
+        my_tags.map!(&:strip)
         Resque.logger.info "tags before: #{my_shopify_cust.tags.inspect}"
         my_tags.delete_if {|x| x.include?('recurring_subscription')}
         my_shopify_cust.tags = my_tags.join(",")

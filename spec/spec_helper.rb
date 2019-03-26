@@ -95,7 +95,7 @@ RSpec.configure do |config|
 =end
 end
 
-MOCK_ITEM = [{
+BASE_ITEMS = [{
   "sku" => "99999999",
   "price" => "0.00",
   "title" => "3 Months 3 items",
@@ -119,3 +119,29 @@ MOCK_ITEM = [{
   "shopify_product_id" => "191919191911",
   "shopify_variant_id" => "2828282828282",
   }]
+
+  LABELED_ITEMS = [{
+    "sku" => "99999999",
+    "price" => "0.00",
+    "title" => "3 Months 3 items",
+    "quantity" => 1,
+    "properties" => [
+      {"name" => "charge_interval_frequency", "value" => "3"},
+      {"name" => "charge_interval_unit_type", "value" => "Months"},
+      {"name" => "leggings", "value" => "S"},
+      {"name" => "main-product", "value" => "true"},
+      {"name" => "product_collection", "value" => "Mauve Muse - 3 Items"},
+      {"name" => "product_id", "value" => 17273748586},
+      {"name" => "referrer", "value" => ""},
+      {"name" => "shipping_interval_frequency", "value" => "1"},
+      {"name" => "shipping_interval_unit_type", "value" => "Months"},
+      {"name" => "sports-bra", "value" => "S"},
+      {"name" => "tops", "value" => "S"},
+      {"name" => "3month_nocharge", "value" => true},
+      ],
+    "product_title" => "3 Months 3 items",
+    "variant_title" => "",
+    "subscription_id" => 88888888,
+    "shopify_product_id" => "191919191911",
+    "shopify_variant_id" => "2828282828282",
+    }]

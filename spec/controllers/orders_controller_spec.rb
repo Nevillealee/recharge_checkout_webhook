@@ -15,9 +15,9 @@ RSpec.describe OrdersController, type: :controller do
     it "enqueues QueuedOrderLabel job" do
       request.headers['X-Recharge-Topic'] = "order/created"
       post :create, :params => { :order =>
-        { :id => 1234567, :is_prepaid => 1, :status => "QUEUED", :customer_id => 11111111, :line_items => MOCK_ITEM.to_json }
+        { :id => 1234567, :is_prepaid => 1, :status => "QUEUED", :customer_id => 11111111, :line_items => BASE_ITEMS.to_json }
       }
-      expect(QueuedOrderLabel).to have_queued("1234567", MOCK_ITEM.to_json).in(:queued_order_label)
+      expect(QueuedOrderLabel).to have_queued("1234567", BASE_ITEMS.to_json).in(:queued_order_label)
       expect(QueuedOrderLabel).to have_queue_size_of(1)
     end
   end
