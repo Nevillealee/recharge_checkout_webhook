@@ -33,8 +33,9 @@ class SubscriptionsController < ApplicationController
       render :status => 200
     when 'subscription/cancelled'
       Resque.logger.info "subscription/cancelled endpoint"
-      Resque.enqueue(TagRemovalBySub, @sub_id, 'subscription', @sub)
+      # Resque.enqueue(TagRemovalBySub, @sub_id, 'subscription', @sub)
       puts "#{@topic}"
+      puts @sub.inspect
       render :status => 200
     else
       render :json => params["subscription"].to_json ,:status => 400

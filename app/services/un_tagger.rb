@@ -5,19 +5,24 @@ class UnTagger
   def initialize(id, type, obj)
     @my_id = id
     @id_type = type
-    @cust = obj
-    my_token = ENV['RECHARGE_ACTIVE_TOKEN']
+    @recharge_obj = obj
+    # TODO(Neville): change to active env
+    my_token = ENV['RECHARGE_STAGING_TOKEN']
     @my_header = {
       "X-Recharge-Access-Token" => my_token
     }
   end
 
   def remove
-    shop_url = "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin"
+    # TODO(Neville): change to active env
+    shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
+
     if @id_type == 'subscription'
       # link subscription_id to its recharge customer.
       # returns a hash array
+      recharge_sub = @recharge_obj
+      puts recharge_obj.inspect
       recharge_customer = RechargeCustomer.find_by_sql(
         "SELECT rc.* FROM recharge_customers rc
         INNER JOIN recharge_subscriptions rs
