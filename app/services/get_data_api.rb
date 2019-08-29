@@ -59,7 +59,7 @@ module GetDataAPI
 
     RECHARGE_CUSTOMERS.each do |cust|
       puts "#{cust.inspect}"
-      RechargeCustomer.create(
+      Customer.create(
         id: cust.id,
         customer_hash: cust.hash,
         shopify_customer_id: cust.shopify_customer_id,
@@ -88,7 +88,7 @@ module GetDataAPI
     RECHARGE_SUBS.each do |s|
       puts "saving #{s['id']}"
       begin
-      RechargeSubscription.create(
+      Subscription.create(
         id: s['id'],
         address_id: s['address_id'],
         customer_id: s['customer_id'],
@@ -170,6 +170,7 @@ module GetDataAPI
       put "api limit reached sleeping 10.."
       sleep 10
   end
+
   def self.init_recharge_customers
     ReCharge.api_key ="#{ENV['RECHARGE_ACTIVE_TOKEN']}"
     customer_count = Recharge::Customer.count
@@ -183,6 +184,7 @@ module GetDataAPI
     p 'recharge customers initialized'
     RECHARGE_CUSTOMERS.flatten!
   end
+
   def self.init_all_shopify_customers
     customer_array = []
     ShopifyAPI::Base.site =
@@ -204,6 +206,7 @@ module GetDataAPI
     customer_array.flatten!
     return customer_array
   end
+
   def self.init_recharge_subs
     response = HTTParty.get("https://api.rechargeapps.com/subscriptions/count", :headers => @my_header)
     my_response = JSON.parse(response.body)

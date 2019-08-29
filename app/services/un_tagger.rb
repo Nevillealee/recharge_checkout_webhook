@@ -5,7 +5,8 @@ class UnTagger
   def initialize(id, type, obj)
     @my_id = id
     @id_type = type
-    @cust = obj
+    @recharge_obj = obj
+
     my_token = ENV['RECHARGE_ACTIVE_TOKEN']
     @my_header = {
       "X-Recharge-Access-Token" => my_token
@@ -13,30 +14,25 @@ class UnTagger
   end
 
   def remove
+
     shop_url = "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin"
     ShopifyAPI::Base.site = shop_url
+
     if @id_type == 'subscription'
       # link subscription_id to its recharge customer.
       # returns a hash array
-      recharge_customer = RechargeCustomer.find_by_sql(
-        "SELECT rc.* FROM recharge_customers rc
-        INNER JOIN recharge_subscriptions rs
-        ON rc.id = CAST(rs.customer_id AS BIGINT)
-        WHERE rs.id = '#{@my_id}';"
-      )
-      cust_id = recharge_customer[0]["id"]
-      Resque.logger.info "(subscription)found recharge customer id: #{cust_id}"
-      shopify_id = recharge_customer[0]["shopify_customer_id"]
-      my_url = "https://api.rechargeapps.com/subscriptions?customer_id=#{cust_id}&status=ACTIVE"
+      recharge_sub = @recharge_obj
+      recharge_customer = Customer.find_by_customer_id(recharge_sub['customer_id'])
+      Resque.logger.info "(subscription)found recharge customer id: #{recharge_customer.customer_id}"
+      my_url = "https://api.rechargeapps.com/subscriptions?customer_id=#{recharge_customer.customer_id}&status=ACTIVE"
       response = HTTParty.get(my_url, :headers => @my_header)
       my_response = JSON.parse(response.body)
       # subs_array is now an array of hashes with string keys
-      subs_array = my_response['subscriptions']
-
-
-      if subs_array.size <= 0
+      active_subs = my_response['subscriptions']
+      puts "ACTIVE SUB RESPONSE: #{active_subs.inspect}"
+      if active_subs.size <= 0
         sleep 5
-        my_shopify_cust = ShopifyAPI::Customer.find(shopify_id)
+        my_shopify_cust = ShopifyAPI::Customer.find(recharge_customer.shopify_customer_id)
         my_tags = my_shopify_cust.tags.split(",")
         my_tags.map! {|x| x.strip}
         Resque.logger.info "tags before: #{my_shopify_cust.tags.inspect}"
@@ -46,8 +42,8 @@ class UnTagger
         Resque.logger.info "tags after: #{my_shopify_cust.tags.inspect}"
         Resque.logger.info "tag removed"
       else
-        Resque.logger.info subs_array.inspect
-        Resque.logger.info "tags will not be removed, customer has #{subs_array.size} other ACTIVE subscriptions"
+        Resque.logger.info active_subs.inspect
+        Resque.logger.info "tags will not be removed, customer has #{active_subs.size} other ACTIVE subscriptions"
       end
 
     elsif @id_type == 'customer'
