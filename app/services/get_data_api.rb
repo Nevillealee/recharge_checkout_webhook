@@ -59,7 +59,7 @@ module GetDataAPI
 
     RECHARGE_CUSTOMERS.each do |cust|
       puts "#{cust.inspect}"
-      RechargeCustomer.create(
+      Customer.create(
         id: cust.id,
         customer_hash: cust.hash,
         shopify_customer_id: cust.shopify_customer_id,
@@ -88,7 +88,7 @@ module GetDataAPI
     RECHARGE_SUBS.each do |s|
       puts "saving #{s['id']}"
       begin
-      RechargeSubscription.create(
+      Subscription.create(
         id: s['id'],
         address_id: s['address_id'],
         customer_id: s['customer_id'],
@@ -184,7 +184,7 @@ module GetDataAPI
     p 'recharge customers initialized'
     RECHARGE_CUSTOMERS.flatten!
   end
-  
+
   def self.init_all_shopify_customers
     customer_array = []
     ShopifyAPI::Base.site =

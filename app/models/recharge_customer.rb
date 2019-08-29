@@ -1,2 +1,0 @@
-class RechargeCustomer < ApplicationRecord
-end

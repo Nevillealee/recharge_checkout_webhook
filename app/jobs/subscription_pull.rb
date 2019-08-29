@@ -1,4 +1,4 @@
-class RechargeSubscriptionPull
+class SubscriptionPull
   @queue = :data
   def self.perform
     Resque.logger = Logger.new("#{Rails.root}/log/resque.log")
