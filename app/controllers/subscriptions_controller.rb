@@ -11,12 +11,12 @@ class SubscriptionsController < ApplicationController
    logger.info "Subscription Controller reached"
     case @topic
     when 'subscription/created'
-      if @status == 'ACTIVE'
+      # if @status == 'ACTIVE'
         logger.info "subscription/created endpoint"
         Resque.enqueue(ShopifyCustomerTag, @sub_id, @sub)
         logger.info "#{@topic}"
         render :status => 200
-      end
+      # end
     when 'subscription/activated'
       Resque.enqueue(ShopifyCustomerTag, @sub_id, @sub)
       logger.info "subscription/activated endpoint"

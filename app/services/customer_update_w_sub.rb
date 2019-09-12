@@ -10,40 +10,50 @@ class CustomerUpdatewSub
     @my_header = {
       "X-Recharge-Access-Token" => my_token
     }
-    @shopify_sleep_time = ENV['SHOPIFY_SLEEP_TIME']
+    @shopify_sleep_time = ENV['SHOPIFY_SLEEP_TIME'].to_i
   end
 
   def tag_customer
-    begin
-      retries ||= 0
-      my_customer = get_shopify_customer(@sub)
-      my_tags = my_customer.tags.split(",")
-      my_tags.map! {|x| x.strip}
-      Resque.logger.info "Tagging Shopify Customer(#{my_customer.id}).."
+    if is_recurring_sub?(@sub)
+      begin
+        retries ||= 0
+        my_customer = get_shopify_customer(@sub)
+        my_tags = my_customer.tags.split(",")
+        my_tags.map! {|x| x.strip}
+        Resque.logger.info "Tagging Shopify Customer(#{my_customer.id}).."
 
-      if my_tags.include?('recurring_subscription') || my_tags.include?('Inactive Subscriber')
-        Resque.logger.info my_tags.inspect
-        Resque.logger.info "customer doesnt need to be tagged"
-      else
-        # sleep @shopify_sleep_time
-        Resque.logger.info "here what shopifys api returned from ID: #{my_customer.id}"
-        my_tags << "recurring_subscription"
-        # shopify wont accept tag string values without space AND comma delimited tokens!
-        Resque.logger.info "old shopify customer object tags: #{my_customer.tags}"
-        my_customer.tags = my_tags.join(",")
-        my_customer.save
-        Resque.logger.info "new shopify customer object tags: #{my_customer.tags}"
+        if my_tags.include?('recurring_subscription') || my_tags.include?('Inactive Subscriber')
+          Resque.logger.info my_tags.inspect
+          Resque.logger.info "customer doesnt need to be tagged\n"
+        else
+          Resque.logger.info "here what shopifys api returned from ID: #{my_customer.id}"
+          my_tags << "recurring_subscription"
+          # shopify wont accept tag string values without space AND comma delimited tokens!
+          Resque.logger.info "old shopify customer object tags: #{my_customer.tags}"
+          my_customer.tags = my_tags.join(",")
+          my_customer.save
+          Resque.logger.info "new shopify customer object tags: #{my_customer.tags}\n"
+        end
+      rescue => e
+        retries += 1
+        Resque.logger.info "ERROR: #{e.message}"
+        Resque.logger.info "Attempt ##{retries}/3"
+    	  retry if retries < 2
       end
-    rescue => e
-      retries += 1
-      Resque.logger.info "ERROR: #{e.message}"
-      Resque.logger.info "Attempt ##{retries}/3"
-  	  retry if retries < 2
+    else
+      Resque.logger.info "Subscription(#{@sub['id']}) isnt recurring! No changes made"
     end
   end
 
+  # recurring ReCharge subscriptions wont have nil values for any of these sub attributes
   def is_recurring_sub?(sub)
-    
+    charge_int_freq = sub["charge_interval_frequency"]
+    order_int_freq = sub["order_interval_frequency"]
+    order_int_unit = sub["order_interval_unit"]
+    Resque.logger.debug "Recharge Subscription RECURRING PROPERTY CHECK: \n"\
+    "----->charge_interval_frequency: #{charge_int_freq}\n----->order_interval_frequency: "\
+    "#{order_int_freq}\n----->order_interval_unit: #{order_int_unit}"
+    return [charge_int_freq, order_int_freq, order_int_unit].all?
   end
 
   # Uses Recharge customer json to request Shopify Customer object
