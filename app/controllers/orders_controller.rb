@@ -1,23 +1,20 @@
 class OrdersController < ApplicationController
-  Resque.logger = Logger.new("#{Rails.root}/log/resque.log")
-  Resque.logger.level = Logger::INFO
-
   def index
   end
 
   def create
+    logger.info "Order Controller reached"
     @cust_id = valid_params["order"]["customer_id"] if valid_params["order"]
     @topic = request.headers["X-Recharge-Topic"] if request.headers["X-Recharge-Topic"]
 
-    case request.headers["X-Recharge-Topic"]
-    when 'order/created'
-      Resque.logger.info "order/created endpoint"
+    if request.headers["X-Recharge-Topic"] == 'order/created'
+      logger.info "order/created endpoint"
       Resque.enqueue(ProspectTag, @cust_id)
-      puts @topic
+      logger.info @topic
       render :status => 200
     else
       render :json => valid_params["order"].to_json ,:status => 400
-      puts request.headers["X-Recharge-Topic"]
+      logger.error request.headers["X-Recharge-Topic"]
     end
 
   end
@@ -34,6 +31,5 @@ class OrdersController < ApplicationController
          :last_name]
       )
   end
-
 
 end

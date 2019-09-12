@@ -1,7 +1,4 @@
 class SubscriptionsController < ApplicationController
-  Resque.logger = Logger.new("#{Rails.root}/log/resque.log")
-  Resque.logger.level = Logger::INFO
-
   def index
   end
 
@@ -11,34 +8,28 @@ class SubscriptionsController < ApplicationController
     @status = params["subscription"]["status"]
     @topic = request.headers["X-Recharge-Topic"]
 
+   logger.info "Subscription Controller reached"
     case @topic
     when 'subscription/created'
       if @status == 'ACTIVE'
-        Resque.logger.info "subscription/created endpoint"
+        logger.info "subscription/created endpoint"
         Resque.enqueue(ShopifyCustomerTag, @sub_id, @sub)
-        puts "#{@topic}"
-        render :status => 200
-      end
-    when 'subscription/updated'
-      if @status == 'ACTIVE'
-        Resque.logger.info "subscription/updated endpoint"
-        Resque.enqueue(ShopifyCustomerTag, @sub_id, @sub)
-        puts "#{@topic}"
+        logger.info "#{@topic}"
         render :status => 200
       end
     when 'subscription/activated'
       Resque.enqueue(ShopifyCustomerTag, @sub_id, @sub)
-      Resque.logger.info "subscription/activated endpoint"
-      puts "#{@topic}"
+      logger.info "subscription/activated endpoint"
+      logger.info "#{@topic}"
       render :status => 200
     when 'subscription/cancelled'
-      Resque.logger.info "subscription/cancelled endpoint"
+      logger.info "subscription/cancelled endpoint"
       Resque.enqueue(TagRemovalBySub, @sub_id, 'subscription', @sub)
-      puts "#{@topic}"
+      logger.info "#{@topic}"
       render :status => 200
     else
       render :json => params["subscription"].to_json ,:status => 400
-      puts request.headers["X-Recharge-Topic"]
+      logger.error request.headers["X-Recharge-Topic"]
     end
   end
 

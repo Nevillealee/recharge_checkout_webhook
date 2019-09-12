@@ -1,10 +1,10 @@
-# Internal: Using subscription or customer json recieved from recharge,
-# remove 'recurring_subscription' tag from matching shopify customer object
-# if customer no longer has an active subscription.
+# Internal: Using customer  json received from ReCharge,
+# remove 'prospect' tag from matching Shopify customer object
+# once customer has created an Order (charge sucessfully processed)
 class ProspectRemover
   def initialize(id)
     @recharge_cust_id = id
-    my_token = ENV['RECHARGE_STAGING_TOKEN']
+    my_token = ENV['RECHARGE_TOKEN']
     @my_header = {
       "X-Recharge-Access-Token" => my_token
     }
@@ -12,8 +12,7 @@ class ProspectRemover
 
   def start
     begin
-    shop_url = "https://#{ENV['STAGING_API_KEY']}:#{ENV['STAGING_API_PW']}@#{ENV['STAGING_SHOP']}.myshopify.com/admin"
-    ShopifyAPI::Base.site = shop_url
+    # get customer object from Recharge
     my_url = "https://api.rechargeapps.com/customers/#{@recharge_cust_id}"
     response = HTTParty.get(my_url, :headers => @my_header)
     my_response = JSON.parse(response.body)
@@ -22,10 +21,12 @@ class ProspectRemover
 
     changes_made = false
     sleep 5
+
+    # get shopify customer object tags
     shopify_cust = ShopifyAPI::Customer.find(recharge_cust['shopify_customer_id'])
     my_tags = shopify_cust.tags.split(",")
     my_tags.map! {|x| x.strip}
-    Resque.logger.info "tags before: #{shopify_cust.tags.inspect}"
+    Resque.logger.info "Shopify Customer api tags before: #{shopify_cust.tags.inspect}"
 
     my_tags.each do |x|
       if x.include?('prospect')

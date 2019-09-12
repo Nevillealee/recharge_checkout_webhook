@@ -7,17 +7,13 @@ class UnTagger
     @id_type = type
     @recharge_obj = obj
 
-    my_token = ENV['RECHARGE_ACTIVE_TOKEN']
+    my_token = ENV['RECHARGE_TOKEN']
     @my_header = {
       "X-Recharge-Access-Token" => my_token
     }
   end
 
   def remove
-
-    shop_url = "https://#{ENV['ACTIVE_API_KEY']}:#{ENV['ACTIVE_API_PW']}@#{ENV['ACTIVE_SHOP']}.myshopify.com/admin"
-    ShopifyAPI::Base.site = shop_url
-
     if @id_type == 'subscription'
       # link subscription_id to its recharge customer.
       # returns a hash array
@@ -64,6 +60,7 @@ class UnTagger
         Resque.logger.info "subs_array =  #{subs_array.inspect}"
         Resque.logger.info "number of subscriptions: #{subs_array.size}"
       # only remove tags if customer deactivated AND doesnt have other active subs
+      # TODO(Neville): replace line 68 with recurring status method
         if subs_array.size <= 0
           changes_made = false
           sleep 5

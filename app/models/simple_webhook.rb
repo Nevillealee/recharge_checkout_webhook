@@ -2,7 +2,7 @@ module SimpleWebhook
   class RechargeInfo
     def initialize
       @my_header = {
-          "X-Recharge-Access-Token" => ENV['RECHARGE_STAGING_TOKEN'],
+          "X-Recharge-Access-Token" => ENV['RECHARGE_TOKEN'],
           "content-type" => 'application/json'
       }
     end
