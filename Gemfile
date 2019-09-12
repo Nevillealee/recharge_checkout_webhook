@@ -3,7 +3,7 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 ruby '2.5.0'
 gem 'dotenv-rails', groups: [:development, :production]
-gem 'rails', '~> 5.2.0'
+gem 'rails', '~> 5.2.3'
 gem 'pg', '>= 0.18', '< 2.0'
 # Use Puma as the app server
 gem 'puma', '~> 3.11'
@@ -16,6 +16,12 @@ gem 'rack-cors'
 gem 'redis', '=3.3.5'
 gem 'recharge-api'
 gem 'resque'
+
+# vulnerability fixes
+gem "nokogiri", ">= 1.10.4"
+gem "rack", ">= 2.0.6"
+gem "loofah", ">= 2.2.3"
+gem "sprockets", ">= 3.7.2"
 
 group :development, :test do
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]

@@ -22,7 +22,7 @@ class SubscriptionsController < ApplicationController
       render :status => 200
     when 'subscription/cancelled'
       logger.info "subscription/cancelled endpoint"
-      Resque.enqueue(TagRemovalBySub, @sub_id, 'subscription', @sub)
+      Resque.enqueue(TagRemovalBySub, @sub)
       logger.info "#{@topic}"
       render :status => 200
     else
