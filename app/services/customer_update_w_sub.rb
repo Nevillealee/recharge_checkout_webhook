@@ -3,6 +3,7 @@
 # shopify cust.id) if shopify customer object does not contain
 # 'recurring_subscription' tag already.
 class CustomerUpdatewSub
+  include Recurring
   def initialize(sub_id, sub)
     @sub_id = sub_id
     @sub = sub
@@ -43,17 +44,6 @@ class CustomerUpdatewSub
     else
       Resque.logger.info "Subscription(#{@sub['id']}) isnt recurring! No changes made"
     end
-  end
-
-  # recurring ReCharge subscriptions wont have nil values for any of these sub attributes
-  def is_recurring_sub?(sub)
-    charge_int_freq = sub["charge_interval_frequency"]
-    order_int_freq = sub["order_interval_frequency"]
-    order_int_unit = sub["order_interval_unit"]
-    Resque.logger.debug "Recharge Subscription RECURRING PROPERTY CHECK: \n"\
-    "----->charge_interval_frequency: #{charge_int_freq}\n----->order_interval_frequency: "\
-    "#{order_int_freq}\n----->order_interval_unit: #{order_int_unit}"
-    return [charge_int_freq, order_int_freq, order_int_unit].all?
   end
 
   # Uses Recharge customer json to request Shopify Customer object
