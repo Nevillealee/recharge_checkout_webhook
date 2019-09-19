@@ -12,6 +12,7 @@ class CustomerUpdatewSub
       "X-Recharge-Access-Token" => my_token
     }
     @shopify_sleep_time = ENV['SHOPIFY_SLEEP_TIME'].to_i
+    Resque.logger = Logger.new("#{Rails.root}/log/recurring_tag.log")
   end
 
   def tag_customer

@@ -8,6 +8,7 @@ class ProspectRemover
     @my_header = {
       "X-Recharge-Access-Token" => my_token
     }
+    Resque.logger = Logger.new("#{Rails.root}/log/prospect_tag_removal.log")
   end
 
   def start

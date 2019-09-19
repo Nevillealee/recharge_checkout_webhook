@@ -13,6 +13,7 @@ class UnTagger
   end
 
   def remove
+    Resque.logger = Logger.new("#{Rails.root}/log/recurring_subscription_removal.log")
     recharge_customer = Customer.find_by_customer_id(@recharge_sub['customer_id'])
     Resque.logger.info "Recharge customer id: #{recharge_customer.customer_id}"
     my_url = "https://api.rechargeapps.com/subscriptions?customer_id=#{recharge_customer.customer_id}&status=ACTIVE"
